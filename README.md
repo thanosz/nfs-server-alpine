@@ -2,6 +2,10 @@
 
 A handy NFS Server image comprising Alpine Linux and NFS v4 only, over TCP on port 2049.
 
+## Differences
+This fork supports EXTRA_OPTIONS in /etc/exports (see nfs-server.yaml)
+thanosz/nfs-server-alpine images support multiple architectures (linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/amd64)
+
 ## Overview
 
 The image comprises of;

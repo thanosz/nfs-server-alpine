@@ -20,7 +20,7 @@ stop()
   exit
 }
 
-rm /etc/exports
+rm /etc/exports 
 
 # Check if the SHARED_DIRECTORY variable is empty
 if [ -z "${SHARED_DIRECTORY}" ]; then
@@ -28,7 +28,7 @@ if [ -z "${SHARED_DIRECTORY}" ]; then
   exit 1
 else
   echo "Writing SHARED_DIRECTORY to /etc/exports file"
-  echo "{{SHARED_DIRECTORY}} {{PERMITTED}}({{READ_ONLY}},fsid=0,{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
+  echo "{{SHARED_DIRECTORY}} {{PERMITTED}}({{READ_ONLY}},fsid=0,{{SYNC}},no_subtree_check,no_auth_nlm,insecure,{{EXTRA_OPTIONS}})" >> /etc/exports
   /bin/sed -i "s@{{SHARED_DIRECTORY}}@${SHARED_DIRECTORY}@g" /etc/exports
 fi
 
@@ -77,6 +77,15 @@ else
   /bin/sed -i "s/{{SYNC}}/sync/g" /etc/exports
 fi
 
+if [ -z "${EXTRA_OPTIONS+y}" ]; then
+  echo "The EXTRA_OPTIONS environment variable is unset or null, defaulting to 'no_root_squash' as the only option".
+  echo "Writes will not be immediately written to disk."
+  /bin/sed -i "s/{{EXTRA_OPTIONS}}/no_root_squash/g" /etc/exports
+else
+  echo "The EXTRA_OPTIONS environment variable is set: ${EXTRA_OPTIONS}".
+  /bin/sed -i "s/{{EXTRA_OPTIONS}}/${EXTRA_OPTIONS}/g" /etc/exports
+fi
+
 # Partially set 'unofficial Bash Strict Mode' as described here: http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # We don't set -e because the pidof command returns an exit code of 1 when the specified process is not found
 # We expect this at times and don't want the script to be terminated when it occurs
@@ -108,7 +117,7 @@ while true; do
     # /usr/sbin/rpc.statd
 
     echo "Starting NFS in the background..."
-    /usr/sbin/rpc.nfsd --debug 8 --no-udp --no-nfs-version 2 --no-nfs-version 3
+    /usr/sbin/rpc.nfsd --debug 8 --no-udp --no-nfs-version 3
     echo "Exporting File System..."
     if /usr/sbin/exportfs -rv; then
       /usr/sbin/exportfs
@@ -116,7 +125,7 @@ while true; do
       echo "Export validation failed, exiting..."
       exit 1
     fi
-    echo "Starting Mountd in the background..."These
+    echo "Starting Mountd in the background..."
     /usr/sbin/rpc.mountd --debug all --no-udp --no-nfs-version 2 --no-nfs-version 3
 # --exports-file /etc/exports
 
